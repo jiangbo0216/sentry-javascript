@@ -140,6 +140,7 @@ describe('requestHandler', () => {
     const sentryRequestMiddleware = requestHandler({ flushTimeout: 1337 });
     sentryRequestMiddleware(req, res, next);
     res.end('ok');
+    res.emit('finish');
 
     setImmediate(() => {
       expect(flush).toHaveBeenCalledWith(1337);
@@ -154,6 +155,7 @@ describe('requestHandler', () => {
     const sentryRequestMiddleware = requestHandler({ flushTimeout: 1337 });
     sentryRequestMiddleware(req, res, next);
     res.end('ok');
+    res.emit('finish');
 
     setImmediate(() => {
       expect(res.finished).toBe(true);
