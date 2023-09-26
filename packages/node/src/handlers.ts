@@ -27,6 +27,7 @@ import { extractRequestData } from './requestdata';
 // TODO (v8 / XXX) Remove this import
 import type { ParseRequestOptions } from './requestDataDeprecated';
 import { isAutoSessionTrackingEnabled } from './sdk';
+import { onFinished } from './vendor/on-finished';
 
 /**
  * Express-compatible tracing handler.
@@ -173,18 +174,11 @@ export function requestHandler(
     next: (error?: any) => void,
   ): void {
     if (options && options.flushTimeout && options.flushTimeout > 0) {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const _end = res.end;
-      res.end = function (chunk?: any | (() => void), encoding?: string | (() => void), cb?: () => void): void {
-        void flush(options.flushTimeout)
-          .then(() => {
-            _end.call(this, chunk, encoding, cb);
-          })
-          .then(null, e => {
-            __DEBUG_BUILD__ && logger.error(e);
-            _end.call(this, chunk, encoding, cb);
-          });
-      };
+      onFinished(res, () => {
+        void flush(options.flushTimeout).then(null, e => {
+          __DEBUG_BUILD__ && logger.error(e);
+        });
+      });
     }
     runWithAsyncContext(() => {
       const currentHub = getCurrentHub();
@@ -364,6 +358,6 @@ export function trpcMiddleware(options: SentryTrpcMiddlewareOptions = {}) {
 
 // TODO (v8 / #5257): Remove this
 // eslint-disable-next-line deprecation/deprecation
-export type { ParseRequestOptions, ExpressRequest } from './requestDataDeprecated';
+export type { ExpressRequest, ParseRequestOptions } from './requestDataDeprecated';
 // eslint-disable-next-line deprecation/deprecation
-export { parseRequest, extractRequestData } from './requestDataDeprecated';
+export { extractRequestData, parseRequest } from './requestDataDeprecated';

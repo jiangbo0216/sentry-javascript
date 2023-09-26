@@ -39,7 +39,16 @@ describe('GCPFunction', () => {
         headers: headers,
         body: { foo: 'bar' },
       } as Request;
-      const res = { end: resolve } as Response;
+      // make res extends EventEmitter
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const res = Object.create(require('events').EventEmitter.prototype);
+      // const res = { end: resolve } as Response;
+      res.end = function () {
+        this.emit('finish');
+        // onFinished use setImmediate to defer listener, same as here.
+        setImmediate(resolve);
+      };
+
       d.on('error', () => res.end());
       d.run(() => process.nextTick(fn, req, res));
     });

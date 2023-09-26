@@ -86,3 +86,5 @@ const INTEGRATIONS = {
 };
 
 export { INTEGRATIONS as Integrations, Handlers };
+
+export { onFinished } from './vendor/on-finished';
